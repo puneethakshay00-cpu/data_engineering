@@ -1,10 +1,10 @@
 # Weather Data Engineering Pipeline
 
-## Project Overview
+## Overview
 
-This project is an end-to-end data engineering pipeline that extracts weather data from the Weatherstack API, orchestrates workflows using Apache Airflow, stores data in PostgreSQL, transforms data using dbt, and visualizes insights through Apache Superset dashboards.
+This project implements an end-to-end data engineering pipeline that extracts weather data from the Weatherstack API, stores it in PostgreSQL, transforms it using dbt, orchestrates workflows with Apache Airflow, and visualizes analytics using Apache Superset.
 
-The entire platform is containerized using Docker and Docker Compose for easy deployment and reproducibility.
+The entire platform is containerized using Docker and Docker Compose.
 
 ---
 
@@ -14,21 +14,34 @@ The entire platform is containerized using Docker and Docker Compose for easy de
 Weatherstack API
         │
         ▼
- Apache Airflow
+Apache Airflow
         │
         ▼
- PostgreSQL
+PostgreSQL (Raw Layer)
         │
         ▼
-      dbt
+dev.raw_weather_data
         │
         ▼
- Apache Superset
+dbt Staging Layer
+        │
+        ▼
+dev.stg_weather_data
+        │
+        ▼
+dbt Mart Layer
+      ┌──────────────┐
+      ▼              ▼
+dev.daily_average   dev.weather_report
+      │              │
+      └──────┬───────┘
+             ▼
+Apache Superset Dashboard
 ```
 
 ---
 
-## Tech Stack
+## Technology Stack
 
 * Python
 * Apache Airflow
@@ -43,141 +56,144 @@ Weatherstack API
 
 ## Project Workflow
 
-### Step 1: Data Extraction
+### 1. Data Extraction
 
-Apache Airflow triggers a DAG that fetches weather data from the Weatherstack API.
+Airflow orchestrates the ingestion process and triggers Python scripts that fetch weather information from the Weatherstack API.
 
-### Step 2: Data Loading
+### 2. Data Loading
 
-The retrieved weather data is stored in PostgreSQL in the raw layer.
+The extracted weather data is stored in PostgreSQL.
 
-Example:
+Raw table:
 
 ```sql
-SELECT * FROM dev.raw_weather_data;
+dev.raw_weather_data
 ```
 
-### Step 3: Data Transformation
+### 3. Data Transformation
 
-dbt transforms raw weather records into analytics-ready tables.
+dbt transforms raw weather records into analytics-ready datasets.
 
-Models used:
+#### Staging Layer
 
-* stg_weather_data
-* daily_average
-* weather_report
+```sql
+dev.stg_weather_data
+```
 
-### Step 4: Data Visualization
+#### Mart Layer
 
-Apache Superset connects to PostgreSQL and creates dashboards and visualizations from transformed data.
+```sql
+dev.daily_average
+dev.weather_report
+```
 
----
+### 4. Visualization
 
-## Features
-
-* Automated weather data ingestion
-* Workflow orchestration using Airflow
-* PostgreSQL data warehouse
-* SQL-based transformations with dbt
-* Interactive dashboards using Superset
-* Fully containerized environment
+Apache Superset connects to PostgreSQL and visualizes transformed weather metrics through interactive dashboards.
 
 ---
 
-## Project Structure
+## Repository Structure
 
 ```text
-weather-data-project/
-│
+.
 ├── airflow/
 │   └── dags/
+│       └── orchestrator.py
 │
 ├── api-request/
-│
-├── postgres/
+│   ├── api_request.py
+│   └── insert.py
 │
 ├── dbt/
+│   └── my_project/
+│       ├── models/
+│       │   ├── staging/
+│       │   ├── mart/
+│       │   └── sources/
+│       └── dbt_project.yml
+│
+├── postgres/
+│   ├── airflow_init.sql
+│   └── superset_init.sql
 │
 ├── docker/
 │
 ├── docker-compose.yaml
-│
 └── README.md
 ```
 
 ---
 
-## Running the Project
+## Data Models
 
-Clone the repository:
+### Raw Layer
 
-```bash
-git clone https://github.com/puneethakshay00-cpu/data_engineering_project_1.git
-cd data_engineering_project_1
+```sql
+dev.raw_weather_data
 ```
 
-Start all services:
+Stores weather data directly ingested from the API.
 
-```bash
-docker-compose up -d
+### Staging Layer
+
+```sql
+dev.stg_weather_data
 ```
 
-Access services:
+Performs initial cleaning and standardization.
 
-| Service    | URL                   |
-| ---------- | --------------------- |
-| Airflow    | http://localhost:8000 |
-| Superset   | http://localhost:8088 |
-| PostgreSQL | localhost:5000        |
+### Analytics Layer
 
----
-
-## Sample Data Flow
-
-```text
-Weather API
-    ↓
-Airflow DAG
-    ↓
-PostgreSQL Raw Table
-    ↓
-dbt Models
-    ↓
-Analytics Tables
-    ↓
-Superset Dashboard
+```sql
+dev.daily_average
 ```
+
+Provides aggregated daily weather metrics.
+
+```sql
+dev.weather_report
+```
+
+Provides reporting-ready weather summaries.
 
 ---
 
 ## Skills Demonstrated
 
 * Data Engineering
-* ETL/ELT Pipeline Development
-* Workflow Orchestration
-* SQL Data Modeling
+* ETL / ELT Pipeline Development
+* Apache Airflow Workflow Orchestration
+* PostgreSQL Data Warehousing
+* dbt Data Modeling
+* SQL Transformations
 * Docker Containerization
-* Dashboard Development
-* PostgreSQL Administration
-* Data Transformation with dbt
+* Dashboard Development with Superset
 
 ---
 
 ## Challenges Solved
 
+During development the following issues were resolved:
+
 * Docker Compose configuration issues
 * PostgreSQL authentication and role management
-* Superset initialization and database connectivity
+* Superset initialization failures
 * Multi-container networking
 * Environment variable management
-* dbt integration with PostgreSQL
+* dbt schema and model configuration
+* Database connectivity across services
 
 ---
 
 ## Future Improvements
 
-* Deploy on AWS/GCP
+* Deploy to AWS/GCP
 * Add CI/CD using GitHub Actions
-* Implement data quality tests using dbt tests
-* Add real-time weather streaming
-* Build advanced dashboards and alerts
+* Add dbt tests and data quality checks
+* Implement real-time weather streaming
+* Add alerting and monitoring
+* Create advanced analytical dashboards
+
+```
+```
